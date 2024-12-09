@@ -32,8 +32,10 @@ class Task:
     @staticmethod
     def load_from_txt(txt: str) -> Iterator["Task"]:
         html_lines = txt.splitlines()
-        while html_lines:
-            line = html_lines.pop(0)
+        lineno = 0
+        while lineno < len(html_lines):
+            line = html_lines[lineno]
+            lineno += 1
             if "data-taskid" in line:
                 # Start of a task, read the required information
                 parts = line.strip("<>").split()
@@ -47,22 +49,26 @@ class Task:
                 )
 
                 # Drop the next two lines
-                html_lines = html_lines[2:]
+                lineno += 2
 
                 # Read the name
-                name = html_lines.pop(0).removeprefix("<td>")
+                name = html_lines[lineno].removeprefix("<td>")
+                lineno += 1
 
                 # Drop a line
-                html_lines = html_lines[1:]
+                lineno += 1
 
                 # Read the description
-                desc = html_lines.pop(0).removeprefix("<td>")
+                desc = html_lines[lineno].removeprefix("<td>")
+                lineno += 1
 
                 # Drop a few lines (ignoring the requirements section for now)
-                html_lines = html_lines[3:]
+                while 'src="/images/Trailblazer_Reloaded_League_task' not in html_lines[lineno]:
+                    lineno += 1
 
                 # Read the points the task is worth
-                points = int(html_lines.pop(0).split()[-1])
+                points = int(html_lines[lineno].split()[-1])
+                lineno += 1
 
                 yield Task(tid, region, name, desc, points)
 
